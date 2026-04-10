@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Package } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Package, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Badge } from '@/components/ui/badge';
 
 export default function Navbar() {
   const { user, signOut } = useAuth();
   const { totalItems } = useCart();
+  const { isAdmin } = useAdmin();
 
   return (
     <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
@@ -19,6 +21,11 @@ export default function Navbar() {
         <nav className="flex items-center gap-2">
           {user ? (
             <>
+              {isAdmin && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin"><Shield className="mr-1 h-4 w-4" /> Admin</Link>
+                </Button>
+              )}
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/profile"><User className="mr-1 h-4 w-4" /> Profile</Link>
               </Button>
