@@ -61,7 +61,7 @@ export default function OrdersPage() {
               <div key={order.id} className="flex items-center justify-between rounded-lg border bg-card p-5">
                 <div>
                   <p className="text-sm text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
-                  <p className="mt-1 font-semibold text-foreground">${Number(order.total).toFixed(2)}</p>
+                  <p className="mt-1 font-semibold text-foreground">₹{Number(order.total).toLocaleString('en-IN')}</p>
                   <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                 </div>
                 <Badge className={statusColors[order.status] || 'bg-secondary text-secondary-foreground'}>

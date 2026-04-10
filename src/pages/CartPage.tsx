@@ -44,7 +44,7 @@ export default function CartPage() {
                   <img src={item.products.image_url || '/placeholder.svg'} alt={item.products.name} className="h-20 w-20 rounded-md object-cover" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground">{item.products.name}</h3>
-                    <p className="text-sm text-muted-foreground">${Number(item.products.price).toFixed(2)} each</p>
+                    <p className="text-sm text-muted-foreground">₹{Number(item.products.price).toLocaleString('en-IN')} each</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
@@ -55,7 +55,7 @@ export default function CartPage() {
                       <Plus className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="w-20 text-right font-semibold text-foreground">${(item.quantity * Number(item.products.price)).toFixed(2)}</p>
+                  <p className="w-20 text-right font-semibold text-foreground">₹{(item.quantity * Number(item.products.price)).toLocaleString('en-IN')}</p>
                   <Button variant="ghost" size="icon" className="text-destructive" onClick={() => removeFromCart(item.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -67,7 +67,7 @@ export default function CartPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-lg font-medium text-foreground">Total</span>
-              <span className="text-2xl font-bold text-primary">${totalPrice.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-primary">₹{totalPrice.toLocaleString('en-IN')}</span>
             </div>
 
             <Button className="mt-6 w-full" size="lg" onClick={() => navigate('/checkout')}>

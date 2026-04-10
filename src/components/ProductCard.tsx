@@ -21,7 +21,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <Badge variant="secondary" className="mb-2 text-xs">{product.category}</Badge>
           <h3 className="font-semibold text-foreground line-clamp-1">{product.name}</h3>
           <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{product.description}</p>
-          <p className="mt-3 text-lg font-bold text-primary">${Number(product.price).toFixed(2)}</p>
+          <p className="mt-3 text-lg font-bold text-primary">₹{Number(product.price).toLocaleString('en-IN')}</p>
         </CardContent>
       </Card>
     </Link>

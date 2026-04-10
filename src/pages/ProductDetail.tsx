@@ -85,7 +85,7 @@ export default function ProductDetail() {
             <h1 className="text-3xl font-bold text-foreground">{product.name}</h1>
             <p className="mt-4 text-muted-foreground leading-relaxed">{product.description}</p>
 
-            <p className="mt-6 text-3xl font-bold text-primary">${Number(product.price).toFixed(2)}</p>
+            <p className="mt-6 text-3xl font-bold text-primary">₹{Number(product.price).toLocaleString('en-IN')}</p>
 
             <div className="mt-2">
               {product.stock > 0 ? (
