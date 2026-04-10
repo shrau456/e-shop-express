@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
+import ProductImageGallery from '@/components/ProductImageGallery';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/useCart';
@@ -12,23 +13,34 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Product = Database['public']['Tables']['products']['Row'];
 
+interface ProductImage {
+  id: string;
+  image_url: string;
+  display_order: number;
+}
+
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       if (!id) return;
-      const { data } = await supabase.from('products').select('*').eq('id', id).single();
-      setProduct(data);
+      const [productRes, imagesRes] = await Promise.all([
+        supabase.from('products').select('*').eq('id', id).single(),
+        supabase.from('product_images').select('*').eq('product_id', id).order('display_order'),
+      ]);
+      setProduct(productRes.data);
+      setImages((imagesRes.data as ProductImage[]) || []);
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, [id]);
 
   const handleAddToCart = async () => {
@@ -66,9 +78,7 @@ export default function ProductDetail() {
         </Button>
 
         <div className="grid gap-8 md:grid-cols-2">
-          <div className="overflow-hidden rounded-xl border bg-card">
-            <img src={product.image_url || '/placeholder.svg'} alt={product.name} className="h-full w-full object-cover" />
-          </div>
+          <ProductImageGallery images={images} productName={product.name} fallbackUrl={product.image_url} />
 
           <div className="flex flex-col justify-center">
             <Badge variant="secondary" className="mb-3 w-fit">{product.category}</Badge>
