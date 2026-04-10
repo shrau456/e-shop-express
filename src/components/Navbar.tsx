@@ -20,6 +20,9 @@ export default function Navbar() {
           {user ? (
             <>
               <Button variant="ghost" size="sm" asChild>
+                <Link to="/profile"><User className="mr-1 h-4 w-4" /> Profile</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
                 <Link to="/orders"><Package className="mr-1 h-4 w-4" /> Orders</Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={signOut}>
