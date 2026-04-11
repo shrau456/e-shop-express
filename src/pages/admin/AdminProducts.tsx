@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, X } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type Product = Database['public']['Tables']['products']['Row'];
@@ -19,6 +19,8 @@ export default function AdminProducts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState({ name: '', description: '', price: '', stock: '', category: '', image_url: '' });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const fetchProducts = async () => {
     const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
@@ -31,6 +33,7 @@ export default function AdminProducts() {
   const openCreate = () => {
     setEditing(null);
     setForm({ name: '', description: '', price: '', stock: '', category: '', image_url: '' });
+    setImageFile(null);
     setDialogOpen(true);
   };
 
@@ -44,31 +47,54 @@ export default function AdminProducts() {
       category: p.category || '',
       image_url: p.image_url || '',
     });
+    setImageFile(null);
     setDialogOpen(true);
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(fileName, file);
+    if (error) throw error;
+    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+    return data.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
-      name: form.name,
-      description: form.description || null,
-      price: Number(form.price),
-      stock: Number(form.stock),
-      category: form.category || null,
-      image_url: form.image_url || null,
-    };
+    setUploading(true);
 
-    if (editing) {
-      const { error } = await supabase.from('products').update(payload).eq('id', editing.id);
-      if (error) { toast.error('Failed to update product'); return; }
-      toast.success('Product updated');
-    } else {
-      const { error } = await supabase.from('products').insert(payload);
-      if (error) { toast.error('Failed to create product'); return; }
-      toast.success('Product created');
+    try {
+      let imageUrl = form.image_url;
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+
+      const payload = {
+        name: form.name,
+        description: form.description || null,
+        price: Number(form.price),
+        stock: Number(form.stock),
+        category: form.category || null,
+        image_url: imageUrl || null,
+      };
+
+      if (editing) {
+        const { error } = await supabase.from('products').update(payload).eq('id', editing.id);
+        if (error) { toast.error('Failed to update product'); return; }
+        toast.success('Product updated');
+      } else {
+        const { error } = await supabase.from('products').insert(payload);
+        if (error) { toast.error('Failed to create product'); return; }
+        toast.success('Product created');
+      }
+      setDialogOpen(false);
+      fetchProducts();
+    } catch {
+      toast.error('Failed to upload image');
+    } finally {
+      setUploading(false);
     }
-    setDialogOpen(false);
-    fetchProducts();
   };
 
   const handleDelete = async (id: string) => {
@@ -87,7 +113,7 @@ export default function AdminProducts() {
           <DialogTrigger asChild>
             <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add Product</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editing ? 'Edit Product' : 'New Product'}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div><Label>Name</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required /></div>
@@ -97,8 +123,39 @@ export default function AdminProducts() {
                 <div><Label>Stock</Label><Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} required /></div>
               </div>
               <div><Label>Category</Label><Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} /></div>
-              <div><Label>Image URL</Label><Input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} /></div>
-              <Button type="submit" className="w-full">{editing ? 'Update' : 'Create'}</Button>
+
+              <div>
+                <Label>Product Image</Label>
+                <div className="mt-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed p-3 hover:bg-accent/50 transition-colors flex-1">
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {imageFile ? imageFile.name : 'Upload image'}
+                      </span>
+                      <input type="file" accept="image/*" className="hidden" onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) { setImageFile(file); setForm(f => ({ ...f, image_url: '' })); }
+                      }} />
+                    </label>
+                    {imageFile && (
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setImageFile(null)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {!imageFile && (
+                    <>
+                      <p className="text-xs text-muted-foreground text-center">or paste an image URL</p>
+                      <Input placeholder="https://..." value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} />
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={uploading}>
+                {uploading ? 'Uploading...' : editing ? 'Update' : 'Create'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
