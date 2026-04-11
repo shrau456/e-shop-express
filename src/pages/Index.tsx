@@ -4,7 +4,8 @@ import ProductCard from '@/components/ProductCard';
 import Navbar from '@/components/Navbar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type Product = Database['public']['Tables']['products']['Row'];
@@ -14,6 +15,7 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -26,12 +28,21 @@ export default function Index() {
 
   const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
 
-  const filtered = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
-    const matchesCategory = !category || p.category === category;
-    return matchesSearch && matchesCategory;
-  });
+  const filtered = products
+    .filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+        (p.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
+      const matchesCategory = !category || p.category === category;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low': return Number(a.price) - Number(b.price);
+        case 'price-high': return Number(b.price) - Number(a.price);
+        case 'name': return a.name.localeCompare(b.name);
+        default: return 0; // newest - already sorted from DB
+      }
+    });
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,14 +63,27 @@ export default function Index() {
               className="pl-10"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant={!category ? 'default' : 'outline'} size="sm" onClick={() => setCategory(null)}>All</Button>
-            {categories.map(c => (
-              <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c!)}>
-                {c}
-              </Button>
-            ))}
-          </div>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="price-low">Price: Low → High</SelectItem>
+              <SelectItem value="price-high">Price: High → Low</SelectItem>
+              <SelectItem value="name">Name A-Z</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="mb-6 flex flex-wrap gap-2">
+          <Button variant={!category ? 'default' : 'outline'} size="sm" onClick={() => setCategory(null)}>All</Button>
+          {categories.map(c => (
+            <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c!)}>
+              {c}
+            </Button>
+          ))}
         </div>
 
         {loading ? (

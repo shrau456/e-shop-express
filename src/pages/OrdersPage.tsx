@@ -5,17 +5,51 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Package } from 'lucide-react';
+import { Package, Check, Truck, MapPin, Clock } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-accent text-accent-foreground',
-  processing: 'bg-primary/10 text-primary',
-  shipped: 'bg-primary text-primary-foreground',
-  delivered: 'bg-success text-success-foreground',
+const STATUS_STEPS = ['pending', 'confirmed', 'shipped', 'out_for_delivery', 'delivered'];
+
+const statusConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  pending: { label: 'Pending', icon: <Clock className="h-4 w-4" />, color: 'bg-accent text-accent-foreground' },
+  confirmed: { label: 'Confirmed', icon: <Check className="h-4 w-4" />, color: 'bg-primary/10 text-primary' },
+  shipped: { label: 'Shipped', icon: <Truck className="h-4 w-4" />, color: 'bg-primary/20 text-primary' },
+  out_for_delivery: { label: 'Out for Delivery', icon: <MapPin className="h-4 w-4" />, color: 'bg-primary text-primary-foreground' },
+  delivered: { label: 'Delivered', icon: <Check className="h-4 w-4" />, color: 'bg-green-500 text-white' },
+  cancelled: { label: 'Cancelled', icon: <Clock className="h-4 w-4" />, color: 'bg-destructive text-destructive-foreground' },
 };
+
+function OrderTimeline({ status }: { status: string }) {
+  if (status === 'cancelled') {
+    return <Badge className="bg-destructive text-destructive-foreground">Cancelled</Badge>;
+  }
+
+  const currentIndex = STATUS_STEPS.indexOf(status);
+
+  return (
+    <div className="flex items-center gap-1 mt-3">
+      {STATUS_STEPS.map((step, i) => {
+        const isCompleted = i <= currentIndex;
+        const config = statusConfig[step];
+        return (
+          <div key={step} className="flex items-center">
+            <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+              isCompleted ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
+              {config.icon}
+              <span className="hidden sm:inline">{config.label}</span>
+            </div>
+            {i < STATUS_STEPS.length - 1 && (
+              <div className={`h-0.5 w-4 ${i < currentIndex ? 'bg-primary' : 'bg-muted'}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function OrdersPage() {
   const { user } = useAuth();
@@ -58,15 +92,18 @@ export default function OrdersPage() {
         ) : (
           <div className="mt-6 space-y-4">
             {orders.map(order => (
-              <div key={order.id} className="flex items-center justify-between rounded-lg border bg-card p-5">
-                <div>
-                  <p className="text-sm text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
-                  <p className="mt-1 font-semibold text-foreground">₹{Number(order.total).toLocaleString('en-IN')}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+              <div key={order.id} className="rounded-lg border bg-card p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
+                    <p className="mt-1 font-semibold text-foreground">₹{Number(order.total).toLocaleString('en-IN')}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <Badge className={statusConfig[order.status]?.color || 'bg-secondary text-secondary-foreground'}>
+                    {statusConfig[order.status]?.label || order.status}
+                  </Badge>
                 </div>
-                <Badge className={statusColors[order.status] || 'bg-secondary text-secondary-foreground'}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                </Badge>
+                <OrderTimeline status={order.status} />
               </div>
             ))}
           </div>

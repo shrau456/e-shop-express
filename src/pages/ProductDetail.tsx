@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import ProductImageGallery from '@/components/ProductImageGallery';
+import ReviewSection from '@/components/ReviewSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/useCart';
@@ -46,6 +47,7 @@ export default function ProductDetail() {
   const handleAddToCart = async () => {
     if (!user) { navigate('/auth'); return; }
     if (!product) return;
+    if (product.stock === 0) { toast.error('This product is out of stock'); return; }
     await addToCart(product.id, quantity);
     toast.success(`${product.name} added to cart!`);
   };
@@ -89,7 +91,7 @@ export default function ProductDetail() {
 
             <div className="mt-2">
               {product.stock > 0 ? (
-                <Badge variant="outline" className="text-success border-success">{product.stock} in stock</Badge>
+                <Badge variant="outline" className="text-green-600 border-green-600">{product.stock} in stock</Badge>
               ) : (
                 <Badge variant="destructive">Out of stock</Badge>
               )}
@@ -112,6 +114,8 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+
+        <ReviewSection productId={product.id} />
       </main>
     </div>
   );
