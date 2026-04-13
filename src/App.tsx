@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/hooks/useCart";
 import { WishlistProvider } from "@/hooks/useWishlist";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
 import CartPage from "./pages/CartPage";
@@ -22,6 +23,10 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const P = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>{children}</ProtectedRoute>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -32,18 +37,18 @@ const App = () => (
           <CartProvider>
             <WishlistProvider>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/auth" element={<AuthPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/wishlist" element={<WishlistPage />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/products" element={<AdminProducts />} />
-                <Route path="/admin/orders" element={<AdminOrders />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/" element={<P><Index /></P>} />
+                <Route path="/product/:id" element={<P><ProductDetail /></P>} />
+                <Route path="/cart" element={<P><CartPage /></P>} />
+                <Route path="/checkout" element={<P><CheckoutPage /></P>} />
+                <Route path="/orders" element={<P><OrdersPage /></P>} />
+                <Route path="/profile" element={<P><ProfilePage /></P>} />
+                <Route path="/wishlist" element={<P><WishlistPage /></P>} />
+                <Route path="/admin" element={<P><AdminDashboard /></P>} />
+                <Route path="/admin/products" element={<P><AdminProducts /></P>} />
+                <Route path="/admin/orders" element={<P><AdminOrders /></P>} />
+                <Route path="/admin/users" element={<P><AdminUsers /></P>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </WishlistProvider>
