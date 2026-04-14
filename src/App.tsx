@@ -13,6 +13,7 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import WishlistPage from "./pages/WishlistPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -38,6 +39,7 @@ const App = () => (
             <WishlistProvider>
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/" element={<P><Index /></P>} />
                 <Route path="/product/:id" element={<P><ProductDetail /></P>} />
                 <Route path="/cart" element={<P><CartPage /></P>} />
