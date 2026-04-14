@@ -1,3 +1,2 @@
-# Welcome to your Lovable project
-
+# E-shop-express
 TODO: Document your project here
