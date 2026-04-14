@@ -54,35 +54,61 @@ export default function AuthPage() {
       <main className="container mx-auto flex max-w-md items-center justify-center px-4 py-16">
         <Card className="w-full">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">{isSignUp ? 'Create Account' : 'Welcome Back'}</CardTitle>
-            <CardDescription>{isSignUp ? 'Sign up to start shopping' : 'Sign in to your account'}</CardDescription>
+            <CardTitle className="text-2xl">
+              {isForgot ? 'Reset Password' : isSignUp ? 'Create Account' : 'Welcome Back'}
+            </CardTitle>
+            <CardDescription>
+              {isForgot ? 'Enter your email to receive a reset link' : isSignUp ? 'Sign up to start shopping' : 'Sign in to your account'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
+            {isForgot ? (
+              <form onSubmit={handleForgot} className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="John Doe" className="mt-1" required />
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1" required />
                 </div>
-              )}
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1" required />
-              </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={6} />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Sign In'}
-              </Button>
-            </form>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-              <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline">
-                {isSignUp ? 'Sign In' : 'Sign Up'}
-              </button>
-            </p>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Sending...' : 'Send Reset Link'}
+                </Button>
+                <p className="text-center text-sm text-muted-foreground">
+                  <button type="button" onClick={() => setIsForgot(false)} className="text-primary hover:underline">Back to Sign In</button>
+                </p>
+              </form>
+            ) : (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {isSignUp && (
+                    <div>
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input id="name" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="John Doe" className="mt-1" required />
+                    </div>
+                  )}
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1" required />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={6} />
+                  </div>
+                  {!isSignUp && (
+                    <div className="text-right">
+                      <button type="button" onClick={() => setIsForgot(true)} className="text-sm text-primary hover:underline">Forgot password?</button>
+                    </div>
+                  )}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Sign In'}
+                  </Button>
+                </form>
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+                  <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline">
+                    {isSignUp ? 'Sign In' : 'Sign Up'}
+                  </button>
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </main>
